@@ -1,39 +1,43 @@
 #include <opencv2/opencv.hpp>
-#include <iostream>
+#include <vector>
 
 int main() {
-    // Încearcă să deschidă camera (0 este de obicei camera web implicită)
     cv::VideoCapture cap(0);
+    if (!cap.isOpened()) return -1;
 
-    if (!cap.isOpened()) {
-        std::cout << "Eroare: Nu pot accesa camera!" << std::endl;
-        return -1;
-    }
+    cv::Mat frame, gray, blurred, edges;
 
-    std::cout << "OpenCV functioneaza! Apasa orice tasta in fereastra video pentru a inchide." << std::endl;
-
-    cv::Mat frame;
     while (true) {
-    cap >> frame;
-    if (frame.empty()) break;
+        cap >> frame;
+        if (frame.empty()) break;
 
-    cv::Mat gray, blurred, edges;
-    
-    // 1. Convertire în alb-negru
-    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-    
-    // 2. Blur pentru a ignora detaliile inutile
-    cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 0);
-    
-    // 3. Detectare margini
-    cv::Canny(blurred, edges, 75, 200);
+        // 1. Pregătirea imaginii
+        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 0);
+        cv::Canny(blurred, edges, 75, 200);
 
-    // Afișăm marginile detectate
-    cv::imshow("Detectie Margini", edges);
-    cv::imshow("Camera Normala", frame);
+        // 2. Găsirea contururilor
+        std::vector<std::vector<cv::Point>> contours;
+        cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-    if (cv::waitKey(30) >= 0) break;
+        for (const auto& contour : contours) {
+            // Calculăm perimetrul pentru a aproxima forma
+            double peri = cv::arcLength(contour, true);
+            std::vector<cv::Point> approx;
+            cv::approxPolyDP(contour, approx, 0.02 * peri, true);
+
+            // Dacă forma are 4 colțuri și o mărime minimă, e probabil o carte
+            if (approx.size() == 4 && cv::contourArea(contour) > 5000) {
+                // Desenăm conturul verde peste imaginea originală
+                cv::drawContours(frame, std::vector<std::vector<cv::Point>>{approx}, -1, cv::Scalar(0, 255, 0), 3);
+                
+                // Punem un text deasupra
+                cv::putText(frame, "Carte detectata", approx[0], cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0, 255, 0), 2);
+            }
+        }
+
+        cv::imshow("Blackjack Vision", frame);
+        if (cv::waitKey(30) >= 0) break;
     }
-
     return 0;
 }
