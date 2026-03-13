@@ -14,12 +14,25 @@ int main() {
 
     cv::Mat frame;
     while (true) {
-        cap >> frame; // Captează un cadru nou
-        if (frame.empty()) break;
+    cap >> frame;
+    if (frame.empty()) break;
 
-        cv::imshow("Test Blackjack Camera", frame); // Afișează imaginea
+    cv::Mat gray, blurred, edges;
+    
+    // 1. Convertire în alb-negru
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    
+    // 2. Blur pentru a ignora detaliile inutile
+    cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 0);
+    
+    // 3. Detectare margini
+    cv::Canny(blurred, edges, 75, 200);
 
-        if (cv::waitKey(30) >= 0) break;
+    // Afișăm marginile detectate
+    cv::imshow("Detectie Margini", edges);
+    cv::imshow("Camera Normala", frame);
+
+    if (cv::waitKey(30) >= 0) break;
     }
 
     return 0;
