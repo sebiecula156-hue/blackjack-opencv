@@ -1,8 +1,8 @@
 [
 {
-  "directory": "D:/autoclicker/chestii/test/build",
-  "command": "C:\\PROGRA~1\\MIB055~1\\18\\Insiders\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -external:ID:\\autoclicker\\chestii\\vcpkg\\installed\\x64-windows\\include\\opencv4 -external:W0 /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 /FoCMakeFiles\\main_app.dir\\main.cpp.obj /FdCMakeFiles\\main_app.dir\\ /FS -c D:\\autoclicker\\chestii\\test\\main.cpp",
-  "file": "D:/autoclicker/chestii/test/main.cpp",
-  "output": "D:/autoclicker/chestii/test/build/CMakeFiles/main_app.dir/main.cpp.obj"
+  "directory": "D:/autoclicker/chestii/blackjack/build",
+  "command": "C:\\PROGRA~1\\MIB055~1\\18\\Insiders\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -external:ID:\\autoclicker\\chestii\\vcpkg\\installed\\x64-windows\\include\\opencv4 -external:W0 /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 /FoCMakeFiles\\main_app.dir\\main.cpp.obj /FdCMakeFiles\\main_app.dir\\ /FS -c D:\\autoclicker\\chestii\\blackjack\\main.cpp",
+  "file": "D:/autoclicker/chestii/blackjack/main.cpp",
+  "output": "D:/autoclicker/chestii/blackjack/build/CMakeFiles/main_app.dir/main.cpp.obj"
 }
 ]
