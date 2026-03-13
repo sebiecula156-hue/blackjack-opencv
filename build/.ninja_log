@@ -1,15 +1,5 @@
 # ninja log v6
-11	1673	7951106438072374	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-1678	4894	7951106454741597	main_app.exe	4eeee97f8f8ac96f
-16	1837	7951107504264894	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-14	2905	7951107974302825	main_app.exe	4eeee97f8f8ac96f
-27	1760	7951109836572867	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-1760	4680	7951109853882954	main_app.exe	4eeee97f8f8ac96f
-19	1764	7951111471412464	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-1764	4456	7951111488857006	main_app.exe	4eeee97f8f8ac96f
-15	1919	7951112756357377	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-1920	4769	7951112775402351	main_app.exe	4eeee97f8f8ac96f
-19	2307	7951125434229729	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
-2309	5187	7951125457131178	main_app.exe	4eeee97f8f8ac96f
 22	1944	7951128014635654	CMakeFiles/main_app.dir/main.cpp.obj	400ea7da53a5f3d0
 1946	5110	7951128033874338	main_app.exe	4eeee97f8f8ac96f
+22	1727	7951138397009549	CMakeFiles/main_app.dir/main.cpp.obj	8b69955a78e8e9c
+1729	4653	7951138414076431	main_app.exe	23546b523d9779eb
