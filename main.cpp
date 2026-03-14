@@ -21,6 +21,7 @@ int main() {
     // Setări opționale pentru luminozitate (ajustează valorile dacă e prea întunecat/luminos)
     cap.set(cv::CAP_PROP_BRIGHTNESS, 100); 
 
+    cv::Mat cornerThresh;
     cv::Mat frame, gray, blurred, edges;
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
 
@@ -28,13 +29,13 @@ int main() {
         cap >> frame;
         if (frame.empty()) break;
 
-        // 1. Procesare imagine
+        // Procesare imagine
         cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
         cv::GaussianBlur(gray, blurred, cv::Size(7, 7), 0);
         cv::Canny(blurred, edges, 30, 100);
         cv::dilate(edges, edges, kernel); // Unim liniile întrerupte
 
-        // 2. Găsirea contururilor
+        // Găsirea contururilor
         std::vector<std::vector<cv::Point>> contours;
         cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
@@ -71,6 +72,16 @@ int main() {
                         cv::Mat warped;
                         cv::warpPerspective(frame, warped, M, cv::Size(200, 300));
 
+                        // Decupăm colțul stânga-sus, luăm cam 20% din lățime și 35% din înălțime
+                        cv::Rect roi(5, 5, 45, 80); 
+                        cv::Mat cardCorner = warped(roi);
+                        
+                        // Îl facem alb-negru clar (Thresholding)
+                        cv::Mat cornerGray;
+                        cv::cvtColor(cardCorner, cornerGray, cv::COLOR_BGR2GRAY);
+                        cv::adaptiveThreshold(cornerGray, cornerThresh, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 11, 2);
+
+                        cv::imshow("Corner Debug", cornerThresh);
                         cv::imshow("Cartea Scanata", warped);
                     }
                 }
@@ -80,7 +91,20 @@ int main() {
         cv::imshow("Blackjack Vision", frame);
         cv::imshow("Edges (Debug)", edges);
 
-        if (cv::waitKey(1) >= 0) break;
+        int key = cv::waitKey(1);
+
+        // Salvează imaginea
+        if (key == 's'){
+            std::string rankName;
+            std::cout << "Introduceti rangul cartii: ";
+            std::cin >> rankName;
+
+            std::string fullPath = "D:/autoclicker/chestii/blackjack/templates/rank_" + rankName + ".jpg";
+            cv::imwrite(fullPath, cornerThresh);
+
+            std::cout << "Imaginea a fost salvată ca '" << fullPath << "'." << std::endl;
+        }
+        else if(key >= 0) break; // Se închide programul la orice apăsare de tastă
     }
 
     return 0;
