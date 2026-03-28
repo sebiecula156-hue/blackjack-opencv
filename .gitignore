@@ -1,0 +1,13 @@
+build/
+bin/
+out/
+
+.vscode/
+
+.vs/
+x64/
+Debug/
+Release/
+
+vcpkg/
+vcpkg_installed/
