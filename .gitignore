@@ -1,13 +1,20 @@
 build/
 bin/
 out/
-
-.vscode/
-
-.vs/
 x64/
 Debug/
 Release/
 
+.vscode/
+.vs/
+*.user
+*.sln
+*.vcxproj
+
 vcpkg/
 vcpkg_installed/
+
+*.exe
+*.obj
+*.pdb
+*.ilk
