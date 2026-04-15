@@ -32,7 +32,7 @@ int main() {
     // Ajustari camera
     cap.set(cv::CAP_PROP_BRIGHTNESS, 150);
 
-    cv::Mat frame, gray, blurred, edges, cornerThresh;
+    cv::Mat frame, cornerThresh;
 
     // Variabile pentru stabilizare intre frame-uri
      cv::Rect prevBoundingBox;
@@ -51,54 +51,65 @@ int main() {
 
         bool cardDetected = false;
 
-        // Procesare imagine
-        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-        cv::GaussianBlur(gray, blurred, cv::Size(7, 7), 0);
-        cv::Canny(blurred, edges, 30, 100);
+        // HSV mask
+        cv::Mat hsv, whiteMask;
+        cv::cvtColor(frame, hsv, cv::COLOR_BGR2HSV);
 
-        // MORFOLOGIE: Unim marginile si eliminam micile intreruperi cauzate de degete
-        cv::Mat morphKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-        cv::morphologyEx(edges, edges, cv::MORPH_CLOSE, morphKernel);
+        // Filtru pentru alb
+        cv::inRange(hsv, 
+            cv::Scalar(0,   0, 160),   // H_min, S_min, V_min 
+            cv::Scalar(180, 60, 255),  // H_max, S_max, V_max
+            whiteMask);
+        
+        // Morfologie pentru a curata masca
+        cv::Mat morphKernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
+        cv::morphologyEx(whiteMask, whiteMask, cv::MORPH_OPEN,  morphKernel); // elimina zgomot
+        cv::morphologyEx(whiteMask, whiteMask, cv::MORPH_CLOSE, morphKernel); // umple gauri
 
-        // Gasirea contururilor EXTERNE (ignoram interiorul cartii)
+        // Gasirea contururilor pe masca alba
         std::vector<std::vector<cv::Point>> contours;
-        cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        cv::findContours(whiteMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        // Debug
+        cv::imshow("Edges (Debug)", whiteMask);
 
         // Variabile pentru a retine cel mai bun contur gasit
-        std::vector<cv::Point> bestContour;
+        cv::RotatedRect bestRect;;
         double bestArea = 0.0;
+        bool foundCard = false;
 
         for (const auto& contour : contours) {
             double area = cv::contourArea(contour);
+            if (area < 8000) continue;
 
-            // Calculam "Extent" (Cat de mult umple forma dreptunghiul ei de incadrare)
-            cv::Rect boundingBox = cv::boundingRect(contour);
-            double extent = area / (double)(boundingBox.width * boundingBox.height);
+            cv::RotatedRect rRect = cv::minAreaRect(contour);
+            float w = rRect.size.width;
+            float h = rRect.size.height;
+            if (w < 1 || h < 1) continue;
+            
+            // Normalizam astfel incat ratio > 1 intotdeauna
+            float ratio = (w > h) ? w / h : h / w;
 
-            // Filtru de marime: Trebuie sa fie o forma mare si "plina" (dreptunghiulara)
-            if (area > 8000 && extent > 0.65) {
-                double peri = cv::arcLength(contour, true);
-                std::vector<cv::Point> approx;
-                cv::approxPolyDP(contour, approx, 0.03 * peri, true);
+            if (ratio < 1.1f || ratio > 2.2f) continue;
 
-                // Verificam daca e convex
-                if (approx.size() == 4 && cv::isContourConvex(approx)) {
-
-                     // Verificam raportul de aspect (Latime / Inaltime)
-                    float ratio = (float)boundingBox.width / boundingBox.height;
-
-                    if ((ratio > 0.4 && ratio < 0.9) || (ratio > 1.1 && ratio < 1.9)) {
-                        if (area > bestArea) {
-                            bestArea = area;
-                            bestContour = approx;
-                        }
-                    }
-                }
+            // Retinem cel mai mare candidat valid
+            if (area > bestArea) {
+                bestArea = area;
+                bestRect = rRect;
+                foundCard = true;
             }
         }
 
-        // Procesam doar cel mai mare contur valid, daca exista
-        if (!bestContour.empty()) {
+        // Procesam doar daca am gasit un candidat valid
+        if (foundCard) {
+            // Extragem cele 4 colturi ale dreptunghiului rotit
+            cv::Point2f corners[4];
+            bestRect.points(corners);
+
+            // Construim bestCountour pentru drawContours
+            std::vector<cv::Point> bestContour;
+            for (auto& c : corners) bestContour.push_back(cv::Point((int)c.x, (int)c.y));
+
             cv::Rect boundingBox = cv::boundingRect(bestContour);
 
             auto now = std::chrono::steady_clock::now();
@@ -135,8 +146,7 @@ int main() {
             cv::drawContours(frame, std::vector<std::vector<cv::Point>>{bestContour}, -1, textColor, 2);
 
             // Warp perspective
-            std::vector<cv::Point2f> src;
-            for (auto p : bestContour) src.push_back(cv::Point2f(p.x, p.y));
+            std::vector<cv::Point2f> src(corners, corners + 4);
             orderPoints(src);
 
             std::vector<cv::Point2f> dst = {
@@ -185,7 +195,6 @@ int main() {
         }
 
         cv::imshow("Blackjack Vision", frame);
-        cv::imshow("Edges (Debug)", edges);
         
         // Salvare imagine
         int key = cv::waitKey(1);
